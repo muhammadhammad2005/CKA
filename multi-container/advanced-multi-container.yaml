@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: advanced-multi-container
+spec:
+  volumes:
+  - name: shared-data
+    emptyDir: {}
+
+  initContainers:
+  - name: data-init
+    image: busybox
+    command: ["sh","-c"]
+    args:
+      - |
+        mkdir -p /data/input /data/output
+        echo "hello world" > /data/input/msg.txt
+    volumeMounts:
+    - name: shared-data
+      mountPath: /data
+
+  containers:
+  - name: main-app
+    image: busybox
+    command: ["sh","-c"]
+    args:
+      - |
+        while true; do
+          cat /data/input/msg.txt > /data/output/result.txt
+          sleep 10
+        done
+    volumeMounts:
+    - name: shared-data
+      mountPath: /data
+
+  - name: monitor-sidecar
+    image: busybox
+    command: ["sh","-c"]
+    args:
+      - |
+        while true; do
+          echo "MONITOR:"
+          cat /data/output/result.txt 2>/dev/null
+          sleep 5
+        done
+    volumeMounts:
+    - name: shared-data
+      mountPath: /data
+
+  - name: cleanup-sidecar
+    image: busybox
+    command: ["sh","-c"]
+    args:
+      - |
+        while true; do
+          echo "cleanup ok"
+          sleep 30
+        done
+    volumeMounts:
+    - name: shared-data
+      mountPath: /data
