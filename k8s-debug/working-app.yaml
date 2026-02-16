@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: working-app
+  labels:
+    app: debug-demo-working
+spec:
+  containers:
+  - name: web-server
+    image: nginx:1.21
+    ports:
+    - containerPort: 80
+    env:
+    - name: SERVER_NAME
+      value: "debug-server"
+    volumeMounts:
+    - name: app-data
+      mountPath: /var/app-data
+  volumes:
+  - name: app-data
+    emptyDir: {}
+  restartPolicy: Always
