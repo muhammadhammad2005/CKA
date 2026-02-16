@@ -1,0 +1,6 @@
+{
+  "name": "lab",
+  "scripts": {
+    "build": "mkdir dist && cp public/* dist/"
+  }
+}
