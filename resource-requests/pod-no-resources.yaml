@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: default-resources-pod
+spec:
+  containers:
+  - name: default-container
+    image: busybox:1.35
+    command: ["sleep","3600"]
