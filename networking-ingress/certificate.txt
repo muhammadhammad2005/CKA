@@ -1,0 +1,6 @@
+Generate Certificates:
+
+openssl genrsa -out webapp.key 2048
+openssl req -new -key webapp.key -out webapp.csr -subj "/CN=webapp.local"
+openssl x509 -req -in webapp.csr -signkey webapp.key -out webapp.crt -days 365
+
