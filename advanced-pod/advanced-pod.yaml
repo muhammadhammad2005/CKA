@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: advanced-pod
+spec:
+  containers:
+  - name: web-server
+    image: nginx
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: web-content
+      mountPath: /usr/share/nginx/html
+
+  - name: log-aggregator
+    image: busybox
+    command: ["sh","-c","tail -f /var/log/nginx/access.log"]
+    volumeMounts:
+    - name: shared-logs
+      mountPath: /var/log/nginx
+
+  - name: metrics-proxy
+    image: prom/prometheus
+
+  - name: config-manager
+    image: busybox
+    command: ["/bin/sh","-c"]
+    args:
+    - |
+      echo "<h1>Advanced Pod</h1>" > /web-content/index.html
+      sleep infinity
+    volumeMounts:
+    - name: web-content
+      mountPath: /web-content
+
+  volumes:
+  - name: web-content
+    emptyDir: {}
+  - name: shared-logs
+    emptyDir: {}

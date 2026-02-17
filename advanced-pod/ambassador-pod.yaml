@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ambassador-pod
+spec:
+  containers:
+  - name: main-app
+    image: busybox:1.35
+    command: ["/bin/sh","-c"]
+    args:
+    - |
+      while true; do
+        nc -z localhost 3306 && echo "DB OK via ambassador" || echo "DB FAIL"
+        sleep 10
+      done
+
+  - name: db-ambassador
+    image: alpine/socat
+    command: ["/bin/sh","-c"]
+    args:
+    - |
+      socat TCP-LISTEN:3306,fork TCP:mysql-service.default.svc.cluster.local:3306
+
+  - name: config-provider
+    image: busybox:1.35
+    command: ["sleep","infinity"]
