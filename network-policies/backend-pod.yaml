@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend
+  namespace: netpol-lab
+  labels:
+    app: backend
+    tier: database
+spec:
+  containers:
+  - name: backend
+    image: postgres:13
+    ports:
+    - containerPort: 5432
+    env:
+    - name: POSTGRES_DB
+      value: "testdb"
+    - name: POSTGRES_USER
+      value: "testuser"
+    - name: POSTGRES_PASSWORD
+      value: "testpass"
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
