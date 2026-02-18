@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+  labels:
+    app: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      serviceAccountName: database-service-account
+      containers:
+      - name: database
+        image: postgres:13
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "testpassword"
+        - name: SERVICE_ACCOUNT
+          value: "database-service-account"
