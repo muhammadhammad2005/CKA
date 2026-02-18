@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: web-app-production
+
+namespace: production
+
+resources:
+- ../../base
+- namespace.yaml
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+  tier: production
+
+patchesStrategicMerge:
+- deployment-patch.yaml
+- configmap-patch.yaml
+- service-patch.yaml
+
+replicas:
+- name: web-app
+  count: 3
+
+images:
+- name: nginx
+  newTag: "1.21"
+
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: web-app
+  path: cpu-limit-patch.json
