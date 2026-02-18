@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temp-storage-app
+  labels:
+    app: temp-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: temp-app
+  template:
+    metadata:
+      labels:
+        app: temp-app
+    spec:
+      containers:
+      - name: app-container
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: temp-storage
+          mountPath: /tmp/app-data
+        - name: cache-storage
+          mountPath: /var/cache/app
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do echo 'Temporary data: '$(date) >> /tmp/app-data/temp-file.txt; echo 'Cache data: '$(date) >> /var/cache/app/cache-file.txt; sleep 30; done"]
+      - name: sidecar-container
+        image: busybox
+        volumeMounts:
+        - name: temp-storage
+          mountPath: /shared-temp
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do if [ -f /shared-temp/temp-file.txt ]; then echo 'Sidecar reading: '; tail -n 1 /shared-temp/temp-file.txt; fi; sleep 60; done"]
+      volumes:
+      - name: temp-storage
+        emptyDir: {}
+      - name: cache-storage
+        emptyDir:
+          sizeLimit: 100Mi
