@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: failing-app
+  labels:
+    app: failing-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failing-app
+  template:
+    metadata:
+      labels:
+        app: failing-app
+    spec:
+      containers:
+      - name: test-app
+        image: busybox:1.35
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Create a simple HTTP server that can fail
+          mkdir -p /tmp/www
+          echo "Application is healthy" > /tmp/www/index.html
+          echo "Application is ready" > /tmp/www/ready
+          
+          # Start simple HTTP server in background
+          cd /tmp/www
+          while true; do
+            echo -e "HTTP/1.1 200 OK\n\n$(cat index.html)" | nc -l -p 8080 -q 1
+          done
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 3
+          failureThreshold: 2
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2

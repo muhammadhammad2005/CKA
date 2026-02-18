@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-probe-app
+  labels:
+    app: python-probe-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-probe-app
+  template:
+    metadata:
+      labels:
+        app: python-probe-app
+    spec:
+      containers:
+      - name: python-app
+        image: python:3.9-slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          cat > /app.py << 'PYEOF'
+          import http.server
+          import socketserver
+          import os
+          import time
+          from urllib.parse import urlparse
+          
+          class HealthHandler(http.server.SimpleHTTPRequestHandler):
+              def do_GET(self):
+                  if self.path == '/health':
+                      if os.path.exists('/tmp/healthy'):
+                          self.send_response(200)
+                          self.end_headers()
+                          self.wfile.write(b'Healthy')
+                      else:
+                          self.send_response(500)
+                          self.end_headers()
+                          self.wfile.write(b'Unhealthy')
+                  elif self.path == '/ready':
+                      if os.path.exists('/tmp/ready'):
+                          self.send_response(200)
+                          self.end_headers()
+                          self.wfile.write(b'Ready')
+                      else:
+                          self.send_response(503)
+                          self.end_headers()
+                          self.wfile.write(b'Not Ready')
+                  else:
+                      self.send_response(200)
+                      self.end_headers()
+                      self.wfile.write(b'Hello from Python app')
+          
+          # Initially healthy and ready
+          os.system('touch /tmp/healthy /tmp/ready')
+          
+          with socketserver.TCPServer(("", 8080), HealthHandler) as httpd:
+              print("Server running on port 8080")
+              httpd.serve_forever()
+          PYEOF
+          
+          python /app.py
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 3
+          failureThreshold: 2
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
