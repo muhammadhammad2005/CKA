@@ -7,19 +7,67 @@ metadata:
 spec:
   containers:
   - name: web-app
-    image: nginx:1.21
+    image: nginx:1.21.6
     ports:
     - containerPort: 80
+
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "250m"
+        memory: "256Mi"
+
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 10
+      periodSeconds: 20
+
+    securityContext:
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+
     volumeMounts:
     - name: shared-data
       mountPath: /usr/share/nginx/html
+
   - name: data-processor
-    image: busybox:1.35
+    image: busybox:1.35.0
     command: ["/bin/sh"]
-    args: ["-c", "while true; do echo '<h1>Data processed at $(date)</h1>' > /shared/index.html; sleep 60; done"]
+    args:
+      - -c
+      - |
+        while true; do
+          echo "<h1>Data processed at $(date)</h1>" > /shared/index.html
+          sleep 60
+        done
+
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+      limits:
+        cpu: "150m"
+        memory: "128Mi"
+
+    securityContext:
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+
     volumeMounts:
     - name: shared-data
       mountPath: /shared
+
   volumes:
   - name: shared-data
     emptyDir: {}
