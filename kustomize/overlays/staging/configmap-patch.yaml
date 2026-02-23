@@ -8,3 +8,5 @@ data:
   database_host: "staging-db.example.com"
   database_port: "5432"
   debug_mode: "true"
+  cache_enabled: "false"
+  max_connections: "50"
