@@ -53,7 +53,9 @@ spec:
     args:
       - |
         while true; do
-          echo "cleanup ok"
+          echo "Performing cleanup..."
+          rm -f /data/output/*.txt
+          echo "Cleanup complete"
           sleep 30
         done
     volumeMounts:
