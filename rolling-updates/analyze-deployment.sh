@@ -1,16 +1,33 @@
 #!/bin/bash
 
+DEPLOYMENT_NAME="nginx-deployment"
+
 echo "=== Deployment Status ==="
-kubectl get deployment nginx-deployment
+kubectl get deployment $DEPLOYMENT_NAME
+echo ""
 
-echo -e "\n=== Rollout History ==="
-kubectl rollout history deployment/nginx-deployment
+echo "=== Rollout Status ==="
+kubectl rollout status deployment/$DEPLOYMENT_NAME
+echo ""
 
-echo -e "\n=== Current Replica Sets ==="
+echo "=== Rollout History ==="
+kubectl rollout history deployment/$DEPLOYMENT_NAME
+echo ""
+
+echo "=== ReplicaSets ==="
 kubectl get replicasets -l app=nginx
+echo ""
 
-echo -e "\n=== Pod Details ==="
+echo "=== Pods ==="
 kubectl get pods -l app=nginx -o wide
+echo ""
 
-echo -e "\n=== Deployment Description ==="
-kubectl describe deployment nginx-deployment | grep -A 10 "RollingUpdateStrategy"
+echo "=== Recent Events ==="
+kubectl get events --sort-by='.lastTimestamp' | tail -15
+echo ""
+
+echo "=== Deployment Strategy ==="
+kubectl describe deployment $DEPLOYMENT_NAME | sed -n '/StrategyType/,/Events/p'
+echo ""
+
+echo "=== Analysis Complete ==="
