@@ -16,19 +16,8 @@ spec:
       - name: app
         image: nginx:1.21
 
+        # Use only ConfigMap for non-sensitive data
         env:
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: database_password
-
-        - name: API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: api_key
-
         - name: DB_HOST
           valueFrom:
             configMapKeyRef:
@@ -38,14 +27,32 @@ spec:
         volumeMounts:
         - name: config-vol
           mountPath: /etc/config
+
+        # Mount secrets as files (more secure)
         - name: secret-vol
           mountPath: /etc/secrets
           readOnly: true
 
+        # Basic security hardening
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+
       volumes:
       - name: config-vol
         configMap:
-          name: app-config-yaml
+          name: app-config
+
       - name: secret-vol
         secret:
-          secretName: file-secrets
+          secretName: app-secrets
